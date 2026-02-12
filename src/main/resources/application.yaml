@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: mini-ecom
+  datasource:
+    url: jdbc:postgresql://localhost:5432/${POSTGRES_DB:mini_ecom}
+    username: ${POSTGRES_USER:mini_ecom}
+    password: ${POSTGRES_PASSWORD:mini_ecom}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        jdbc:
+          lob:
+            non_contextual_creation: true
+server:
+  port: 8080
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
