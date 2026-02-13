@@ -1,6 +1,8 @@
 package org.example.miniecom.common;
 
 import org.example.miniecom.order.service.OrderNotFoundException;
+import org.example.miniecom.order.service.OrderValidationException;
+import org.example.miniecom.product.service.ProductNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -39,8 +41,18 @@ public class GlobalExceptionHandler {
         ));
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ApiErrorResponse> handleIllegalArgument(IllegalArgumentException ex) {
+    @ExceptionHandler(ProductNotFoundException.class)
+    public ResponseEntity<ApiErrorResponse> handleNotFound(ProductNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiErrorResponse.of(
+                HttpStatus.NOT_FOUND.value(),
+                "Not Found",
+                ex.getMessage(),
+                Map.of()
+        ));
+    }
+
+    @ExceptionHandler(OrderValidationException.class)
+    public ResponseEntity<ApiErrorResponse> handleOrderValidation(OrderValidationException ex) {
         return ResponseEntity.badRequest().body(ApiErrorResponse.of(
                 HttpStatus.BAD_REQUEST.value(),
                 "Bad Request",

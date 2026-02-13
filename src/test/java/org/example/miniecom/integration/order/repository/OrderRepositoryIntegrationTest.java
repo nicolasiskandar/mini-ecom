@@ -70,6 +70,21 @@ class OrderRepositoryIntegrationTest extends TestcontainersConfig {
     }
 
     @Test
+    void save_whenStatusIsNull_defaultsStatusToCreated() {
+        Order order = Order.builder()
+                .userId(42L)
+                .status(null)
+                .totalAmount(new BigDecimal("10.00"))
+                .build();
+
+        Order saved = orderRepository.saveAndFlush(order);
+
+        assertThat(saved.getStatus()).isEqualTo(OrderStatus.CREATED);
+        assertThat(saved.getCreatedAt()).isNotNull();
+        assertThat(saved.getUpdatedAt()).isNotNull();
+    }
+
+    @Test
     void delete_removesOrderAndChildItems() {
         Order order = Order.builder()
                 .userId(15L)
@@ -97,5 +112,22 @@ class OrderRepositoryIntegrationTest extends TestcontainersConfig {
 
         assertThat(orderCount).isZero();
         assertThat(itemCount).isZero();
+    }
+
+    @Test
+    void findWithItemsById_loadsOrderWithItems() {
+        Order order = Order.builder()
+                .userId(51L)
+                .status(OrderStatus.CREATED)
+                .totalAmount(new BigDecimal("30.00"))
+                .build();
+        order.addItem(OrderItem.builder().productId(5L).quantity(3).price(new BigDecimal("10.00")).build());
+        Order saved = orderRepository.saveAndFlush(order);
+
+        Optional<Order> loaded = orderRepository.findWithItemsById(saved.getId());
+
+        assertThat(loaded).isPresent();
+        assertThat(loaded.get().getItems()).hasSize(1);
+        assertThat(loaded.get().getItems().getFirst().getProductId()).isEqualTo(5L);
     }
 }
