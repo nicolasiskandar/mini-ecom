@@ -6,6 +6,9 @@ import org.example.miniecom.order.dto.request.CreateOrderRequest;
 import org.example.miniecom.order.dto.request.UpdateOrderRequest;
 import org.example.miniecom.order.dto.response.OrderResponse;
 import org.example.miniecom.order.service.OrderService;
+import org.example.miniecom.payment.dto.request.PaymentRequest;
+import org.example.miniecom.payment.dto.response.PaymentResponse;
+import org.example.miniecom.payment.service.PaymentService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -25,6 +28,7 @@ import java.util.List;
 public class OrderController {
 
     private final OrderService orderService;
+    private final PaymentService paymentService;
 
     @PostMapping
     public ResponseEntity<OrderResponse> createOrder(@Valid @RequestBody CreateOrderRequest request) {
@@ -51,5 +55,10 @@ public class OrderController {
     public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
         orderService.deleteOrder(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{id}/pay")
+    public ResponseEntity<PaymentResponse> payOrder(@PathVariable Long id, @Valid @RequestBody PaymentRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(PaymentResponse.from(paymentService.processPayment(id, request)));
     }
 }

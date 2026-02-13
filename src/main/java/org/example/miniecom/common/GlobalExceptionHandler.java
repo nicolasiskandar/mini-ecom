@@ -2,6 +2,7 @@ package org.example.miniecom.common;
 
 import org.example.miniecom.order.service.OrderNotFoundException;
 import org.example.miniecom.order.service.OrderValidationException;
+import org.example.miniecom.payment.service.PaymentProcessingException;
 import org.example.miniecom.product.service.ProductNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -56,6 +57,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(ApiErrorResponse.of(
                 HttpStatus.BAD_REQUEST.value(),
                 "Bad Request",
+                ex.getMessage(),
+                Map.of()
+        ));
+    }
+
+    @ExceptionHandler(PaymentProcessingException.class)
+    public ResponseEntity<ApiErrorResponse> handlePaymentProcessing(PaymentProcessingException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(ApiErrorResponse.of(
+                HttpStatus.BAD_GATEWAY.value(),
+                "Bad Gateway",
                 ex.getMessage(),
                 Map.of()
         ));

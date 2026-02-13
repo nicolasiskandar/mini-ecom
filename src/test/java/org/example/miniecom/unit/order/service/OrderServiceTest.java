@@ -50,8 +50,8 @@ class OrderServiceTest {
         CreateOrderRequest request = new CreateOrderRequest(
                 42L,
                 List.of(
-                        new CreateOrderItemRequest(1001L, 2, new BigDecimal("10.00")),
-                        new CreateOrderItemRequest(1002L, 1, new BigDecimal("5.50"))
+                        new CreateOrderItemRequest(1001L, 2),
+                        new CreateOrderItemRequest(1002L, 1)
                 )
         );
         when(productRepository.findById(1001L)).thenReturn(Optional.of(Product.builder()
@@ -115,8 +115,8 @@ class OrderServiceTest {
         CreateOrderRequest request = new CreateOrderRequest(
                 7L,
                 List.of(
-                        new CreateOrderItemRequest(10L, 3, new BigDecimal("0.10")),
-                        new CreateOrderItemRequest(11L, 4, new BigDecimal("0.25"))
+                        new CreateOrderItemRequest(10L, 3),
+                        new CreateOrderItemRequest(11L, 4)
                 )
         );
         when(productRepository.findById(10L)).thenReturn(Optional.of(Product.builder()
@@ -152,7 +152,7 @@ class OrderServiceTest {
 
         CreateOrderRequest request = new CreateOrderRequest(
                 12L,
-                List.of(new CreateOrderItemRequest(501L, 3, new BigDecimal("20.00")))
+                List.of(new CreateOrderItemRequest(501L, 3))
         );
 
         orderService.createOrder(request);
@@ -172,7 +172,7 @@ class OrderServiceTest {
 
         CreateOrderRequest request = new CreateOrderRequest(
                 12L,
-                List.of(new CreateOrderItemRequest(777L, 2, new BigDecimal("12.00")))
+                List.of(new CreateOrderItemRequest(777L, 2))
         );
 
         assertThatThrownBy(() -> orderService.createOrder(request))
@@ -190,7 +190,7 @@ class OrderServiceTest {
 
         CreateOrderRequest request = new CreateOrderRequest(
                 10L,
-                List.of(new CreateOrderItemRequest(12345L, 1, new BigDecimal("10.00")))
+                List.of(new CreateOrderItemRequest(12345L, 1))
         );
 
         assertThatThrownBy(() -> orderService.createOrder(request))
@@ -205,7 +205,7 @@ class OrderServiceTest {
         Order order = Order.builder()
                 .id(10L)
                 .userId(42L)
-                .status(OrderStatus.CREATED)
+                .status(OrderStatus.PENDING)
                 .totalAmount(new BigDecimal("99.99"))
                 .build();
 
@@ -231,8 +231,8 @@ class OrderServiceTest {
     @Test
     void getOrders_returnsAllOrdersFromRepository() {
         List<Order> orders = List.of(
-                Order.builder().id(1L).userId(42L).status(OrderStatus.CREATED).totalAmount(new BigDecimal("10.00")).build(),
-                Order.builder().id(2L).userId(43L).status(OrderStatus.CREATED).totalAmount(new BigDecimal("20.00")).build()
+                Order.builder().id(1L).userId(42L).status(OrderStatus.PENDING).totalAmount(new BigDecimal("10.00")).build(),
+                Order.builder().id(2L).userId(43L).status(OrderStatus.PENDING).totalAmount(new BigDecimal("20.00")).build()
         );
         when(orderRepository.findAll()).thenReturn(orders);
 
@@ -262,7 +262,7 @@ class OrderServiceTest {
         Order existing = Order.builder()
                 .id(30L)
                 .userId(9L)
-                .status(OrderStatus.CREATED)
+                .status(OrderStatus.PENDING)
                 .totalAmount(new BigDecimal("20.00"))
                 .build();
         existing.addItem(OrderItem.builder()
@@ -277,8 +277,8 @@ class OrderServiceTest {
         UpdateOrderRequest request = new UpdateOrderRequest(
                 11L,
                 List.of(
-                        new CreateOrderItemRequest(1001L, 1, new BigDecimal("10.00")),
-                        new CreateOrderItemRequest(1002L, 3, new BigDecimal("5.00"))
+                        new CreateOrderItemRequest(1001L, 1),
+                        new CreateOrderItemRequest(1002L, 3)
                 )
         );
 
@@ -300,7 +300,7 @@ class OrderServiceTest {
 
         UpdateOrderRequest request = new UpdateOrderRequest(
                 11L,
-                List.of(new CreateOrderItemRequest(1001L, 1, new BigDecimal("10.00")))
+                List.of(new CreateOrderItemRequest(1001L, 1))
         );
 
         assertThatThrownBy(() -> orderService.updateOrder(404L, request))
@@ -323,7 +323,7 @@ class OrderServiceTest {
         Order existing = Order.builder()
                 .id(30L)
                 .userId(9L)
-                .status(OrderStatus.CREATED)
+                .status(OrderStatus.PENDING)
                 .totalAmount(new BigDecimal("10.00"))
                 .build();
         existing.addItem(OrderItem.builder()
@@ -335,7 +335,7 @@ class OrderServiceTest {
 
         UpdateOrderRequest request = new UpdateOrderRequest(
                 11L,
-                List.of(new CreateOrderItemRequest(1001L, 5, new BigDecimal("10.00")))
+                List.of(new CreateOrderItemRequest(1001L, 5))
         );
 
         assertThatThrownBy(() -> orderService.updateOrder(30L, request))
@@ -370,7 +370,7 @@ class OrderServiceTest {
         Order existing = Order.builder()
                 .id(31L)
                 .userId(9L)
-                .status(OrderStatus.CREATED)
+                .status(OrderStatus.PENDING)
                 .totalAmount(new BigDecimal("25.00"))
                 .build();
         existing.addItem(OrderItem.builder()
@@ -389,7 +389,7 @@ class OrderServiceTest {
 
         UpdateOrderRequest request = new UpdateOrderRequest(
                 11L,
-                List.of(new CreateOrderItemRequest(1002L, 1, new BigDecimal("5.00")))
+                List.of(new CreateOrderItemRequest(1002L, 1))
         );
 
         Order updated = orderService.updateOrder(31L, request);
@@ -413,7 +413,7 @@ class OrderServiceTest {
         Order existing = Order.builder()
                 .id(77L)
                 .userId(12L)
-                .status(OrderStatus.CREATED)
+                .status(OrderStatus.PENDING)
                 .totalAmount(new BigDecimal("60.00"))
                 .build();
         existing.addItem(OrderItem.builder()

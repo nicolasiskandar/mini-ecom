@@ -79,8 +79,8 @@ class OrderApiIntegrationTest extends TestcontainersConfig {
                 {
                   "userId": 7,
                   "items": [
-                    {"productId": %d, "quantity": 2, "price": 9.99},
-                    {"productId": %d, "quantity": 1, "price": 5.00}
+                    {"productId": %d, "amount": 2},
+                    {"productId": %d, "amount": 1}
                   ]
                 }
                 """.formatted(headphonesProductId, standProductId);
@@ -90,7 +90,7 @@ class OrderApiIntegrationTest extends TestcontainersConfig {
                         .content(payload))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.userId").value(7))
-                .andExpect(jsonPath("$.status").value("CREATED"))
+                .andExpect(jsonPath("$.status").value("PENDING"))
                 .andExpect(jsonPath("$.items.length()").value(2))
                 .andExpect(jsonPath("$.totalAmount").value(24.98));
 
@@ -122,7 +122,7 @@ class OrderApiIntegrationTest extends TestcontainersConfig {
                 {
                   "userId": 25,
                   "items": [
-                    {"productId": %d, "quantity": 1, "price": 15.00}
+                    {"productId": %d, "amount": 1}
                   ]
                 }
                 """.formatted(cableProductId);
@@ -166,7 +166,7 @@ class OrderApiIntegrationTest extends TestcontainersConfig {
                 {
                   "userId": 5,
                   "items": [
-                    {"productId": null, "quantity": 0, "price": 0}
+                    {"productId": null, "amount": 0}
                   ]
                 }
                 """;
@@ -177,8 +177,7 @@ class OrderApiIntegrationTest extends TestcontainersConfig {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("Validation failed"))
                 .andExpect(jsonPath("$.validationErrors['items[0].productId']").exists())
-                .andExpect(jsonPath("$.validationErrors['items[0].quantity']").exists())
-                .andExpect(jsonPath("$.validationErrors['items[0].price']").exists());
+                .andExpect(jsonPath("$.validationErrors['items[0].amount']").exists());
     }
 
     @Test
@@ -193,7 +192,7 @@ class OrderApiIntegrationTest extends TestcontainersConfig {
                 {
                   "userId": 7,
                   "items": [
-                    {"productId": %d, "quantity": 2, "price": 7.50}
+                    {"productId": %d, "amount": 2}
                   ]
                 }
                 """.formatted(limited.getId());
@@ -213,7 +212,7 @@ class OrderApiIntegrationTest extends TestcontainersConfig {
                 {
                   "userId": 7,
                   "items": [
-                    {"productId": 999999, "quantity": 1, "price": 9.99}
+                    {"productId": 999999, "amount": 1}
                   ]
                 }
                 """;
@@ -244,7 +243,7 @@ class OrderApiIntegrationTest extends TestcontainersConfig {
                 {
                   "userId": 7,
                   "items": [
-                    {"productId": %d, "quantity": 2, "price": 4.00}
+                    {"productId": %d, "amount": 2}
                   ]
                 }
                 """.formatted(originalProduct.getId());
@@ -259,8 +258,8 @@ class OrderApiIntegrationTest extends TestcontainersConfig {
                 {
                   "userId": 9,
                   "items": [
-                    {"productId": %d, "quantity": 1, "price": 4.00},
-                    {"productId": %d, "quantity": 3, "price": 3.00}
+                    {"productId": %d, "amount": 1},
+                    {"productId": %d, "amount": 3}
                   ]
                 }
                 """.formatted(originalProduct.getId(), newProduct.getId());
@@ -286,7 +285,7 @@ class OrderApiIntegrationTest extends TestcontainersConfig {
                 {
                   "userId": 9,
                   "items": [
-                    {"productId": %d, "quantity": 1, "price": 4.00}
+                    {"productId": %d, "amount": 1}
                   ]
                 }
                 """.formatted(headphonesProductId);
@@ -310,7 +309,7 @@ class OrderApiIntegrationTest extends TestcontainersConfig {
                 {
                   "userId": 7,
                   "items": [
-                    {"productId": %d, "quantity": 1, "price": 20.00}
+                    {"productId": %d, "amount": 1}
                   ]
                 }
                 """.formatted(limited.getId());
@@ -325,7 +324,7 @@ class OrderApiIntegrationTest extends TestcontainersConfig {
                 {
                   "userId": 7,
                   "items": [
-                    {"productId": %d, "quantity": 3, "price": 20.00}
+                    {"productId": %d, "amount": 3}
                   ]
                 }
                 """.formatted(limited.getId());
@@ -358,7 +357,7 @@ class OrderApiIntegrationTest extends TestcontainersConfig {
                 {
                   "userId": 7,
                   "items": [
-                    {"productId": %d, "quantity": 3, "price": 7.00}
+                    {"productId": %d, "amount": 3}
                   ]
                 }
                 """.formatted(product.getId());

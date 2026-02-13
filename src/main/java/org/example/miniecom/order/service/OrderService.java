@@ -33,11 +33,11 @@ public class OrderService {
 
         Order order = Order.builder()
                 .userId(request.userId())
-                .status(OrderStatus.CREATED)
+                .status(OrderStatus.PENDING)
                 .totalAmount(BigDecimal.ZERO)
                 .build();
 
-        BigDecimal total = rebuildOrderItems(order, request.items());
+        BigDecimal total = rebuildOrderItems(order, request.items(), productsById);
 
         applyStockAdjustments(productsById, requestedQtyByProductId);
 
@@ -82,7 +82,7 @@ public class OrderService {
 
         order.setUserId(request.userId());
         order.getItems().clear();
-        BigDecimal total = rebuildOrderItems(order, request.items());
+        BigDecimal total = rebuildOrderItems(order, request.items(), productsById);
         order.setTotalAmount(total);
 
         productRepository.saveAll(productsById.values());
@@ -109,7 +109,7 @@ public class OrderService {
     private Map<Long, Integer> aggregateRequestedQuantities(List<CreateOrderItemRequest> items) {
         Map<Long, Integer> requestedQtyByProductId = new HashMap<>();
         for (CreateOrderItemRequest item : items) {
-            requestedQtyByProductId.merge(item.productId(), item.quantity(), Integer::sum);
+            requestedQtyByProductId.merge(item.productId(), item.amount(), Integer::sum);
         }
         return requestedQtyByProductId;
     }
@@ -128,16 +128,22 @@ public class OrderService {
         }
     }
 
-    private BigDecimal rebuildOrderItems(Order order, List<CreateOrderItemRequest> items) {
+    private BigDecimal rebuildOrderItems(
+            Order order,
+            List<CreateOrderItemRequest> items,
+            Map<Long, Product> productsById
+    ) {
         BigDecimal total = BigDecimal.ZERO;
         for (CreateOrderItemRequest itemRequest : items) {
+            Product product = productsById.get(itemRequest.productId());
+            BigDecimal unitPrice = product.getPrice();
             OrderItem item = OrderItem.builder()
                     .productId(itemRequest.productId())
-                    .quantity(itemRequest.quantity())
-                    .price(itemRequest.price())
+                    .quantity(itemRequest.amount())
+                    .price(unitPrice)
                     .build();
             order.addItem(item);
-            total = total.add(itemRequest.price().multiply(BigDecimal.valueOf(itemRequest.quantity())));
+            total = total.add(unitPrice.multiply(BigDecimal.valueOf(itemRequest.amount())));
         }
         return total;
     }

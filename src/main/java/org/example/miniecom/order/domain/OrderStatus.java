@@ -1,7 +1,7 @@
 package org.example.miniecom.order.domain;
 
 public enum OrderStatus {
-    CREATED,
+    PENDING,
     PAID,
     CANCELLED
 }

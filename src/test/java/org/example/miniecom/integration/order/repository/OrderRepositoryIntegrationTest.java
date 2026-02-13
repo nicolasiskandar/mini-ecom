@@ -33,7 +33,7 @@ class OrderRepositoryIntegrationTest extends TestcontainersConfig {
     void save_persistsOrderAndItemsWithCascade() {
         Order order = Order.builder()
                 .userId(99L)
-                .status(OrderStatus.CREATED)
+                .status(OrderStatus.PENDING)
                 .totalAmount(new BigDecimal("29.98"))
                 .build();
         order.addItem(OrderItem.builder().productId(1L).quantity(2).price(new BigDecimal("9.99")).build());
@@ -52,7 +52,7 @@ class OrderRepositoryIntegrationTest extends TestcontainersConfig {
     void save_whenUpdated_refreshesUpdatedAt() throws InterruptedException {
         Order order = Order.builder()
                 .userId(7L)
-                .status(OrderStatus.CREATED)
+                .status(OrderStatus.PENDING)
                 .totalAmount(new BigDecimal("15.00"))
                 .build();
 
@@ -79,7 +79,7 @@ class OrderRepositoryIntegrationTest extends TestcontainersConfig {
 
         Order saved = orderRepository.saveAndFlush(order);
 
-        assertThat(saved.getStatus()).isEqualTo(OrderStatus.CREATED);
+        assertThat(saved.getStatus()).isEqualTo(OrderStatus.PENDING);
         assertThat(saved.getCreatedAt()).isNotNull();
         assertThat(saved.getUpdatedAt()).isNotNull();
     }
@@ -88,7 +88,7 @@ class OrderRepositoryIntegrationTest extends TestcontainersConfig {
     void delete_removesOrderAndChildItems() {
         Order order = Order.builder()
                 .userId(15L)
-                .status(OrderStatus.CREATED)
+                .status(OrderStatus.PENDING)
                 .totalAmount(new BigDecimal("5.00"))
                 .build();
         order.addItem(OrderItem.builder().productId(3L).quantity(1).price(new BigDecimal("5.00")).build());
@@ -118,7 +118,7 @@ class OrderRepositoryIntegrationTest extends TestcontainersConfig {
     void findWithItemsById_loadsOrderWithItems() {
         Order order = Order.builder()
                 .userId(51L)
-                .status(OrderStatus.CREATED)
+                .status(OrderStatus.PENDING)
                 .totalAmount(new BigDecimal("30.00"))
                 .build();
         order.addItem(OrderItem.builder().productId(5L).quantity(3).price(new BigDecimal("10.00")).build());

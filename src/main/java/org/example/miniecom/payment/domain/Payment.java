@@ -1,14 +1,15 @@
-package org.example.miniecom.order.domain;
+package org.example.miniecom.payment.domain;
 
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -17,38 +18,44 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.example.miniecom.order.domain.Order;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
-@Table(name = "orders")
+@Table(name = "payments")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Order {
+public class Payment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private Long userId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "order_id", nullable = false)
+    private Order order;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private OrderStatus status;
+    private PaymentMethod method;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private PaymentStatus status;
 
     @Column(nullable = false, precision = 19, scale = 2)
-    private BigDecimal totalAmount;
+    private BigDecimal amount;
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<OrderItem> items = new ArrayList<>();
+    @Column(length = 100)
+    private String transactionId;
+
+    @Column(length = 255)
+    private String failureReason;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -56,19 +63,11 @@ public class Order {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
-    public void addItem(OrderItem item) {
-        items.add(item);
-        item.setOrder(this);
-    }
-
     @PrePersist
     void prePersist() {
         LocalDateTime now = LocalDateTime.now();
         createdAt = now;
         updatedAt = now;
-        if (status == null) {
-            status = OrderStatus.PENDING;
-        }
     }
 
     @PreUpdate

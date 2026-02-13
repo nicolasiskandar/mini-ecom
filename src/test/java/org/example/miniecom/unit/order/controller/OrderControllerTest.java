@@ -8,6 +8,10 @@ import org.example.miniecom.order.domain.OrderStatus;
 import org.example.miniecom.order.service.InvalidOrderProductException;
 import org.example.miniecom.order.service.OrderNotFoundException;
 import org.example.miniecom.order.service.OrderService;
+import org.example.miniecom.payment.domain.Payment;
+import org.example.miniecom.payment.domain.PaymentMethod;
+import org.example.miniecom.payment.domain.PaymentStatus;
+import org.example.miniecom.payment.service.PaymentService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -39,6 +43,9 @@ class OrderControllerTest {
     @MockitoBean
     private OrderService orderService;
 
+    @MockitoBean
+    private PaymentService paymentService;
+
     @Test
     void postOrders_givenUnknownProductId_returnsBadRequest() throws Exception {
         when(orderService.createOrder(any()))
@@ -48,7 +55,7 @@ class OrderControllerTest {
                 {
                   "userId": 7,
                   "items": [
-                    {"productId": 999, "quantity": 1, "price": 9.99}
+                    {"productId": 999, "amount": 1}
                   ]
                 }
                 """;
@@ -69,7 +76,7 @@ class OrderControllerTest {
                 {
                   "userId": 11,
                   "items": [
-                    {"productId": 1001, "quantity": 2, "price": 9.99}
+                    {"productId": 1001, "amount": 2}
                   ]
                 }
                 """;
@@ -110,7 +117,7 @@ class OrderControllerTest {
                 {
                   "userId": 11,
                   "items": [
-                    {"productId": 1001, "quantity": 2, "price": 9.99}
+                    {"productId": 1001, "amount": 2}
                   ]
                 }
                 """;
@@ -139,6 +146,38 @@ class OrderControllerTest {
                 .andExpect(jsonPath("$.message").value("Order not found with id=900"));
     }
 
+    @Test
+    void postOrdersPay_givenValidRequest_returnsPayment() throws Exception {
+        Order order = orderWithSingleItem(88L, 5L, 123L, 1, "9.99", "9.99");
+        Payment payment = Payment.builder()
+                .id(501L)
+                .order(order)
+                .method(PaymentMethod.CREDIT_CARD)
+                .status(PaymentStatus.SUCCEEDED)
+                .amount(new BigDecimal("9.99"))
+                .transactionId("cc_tx_1")
+                .build();
+        when(paymentService.processPayment(any(), any())).thenReturn(payment);
+
+        String payload = """
+                {
+                  "method": "CREDIT_CARD",
+                  "paymentToken": "cc_tok_ok"
+                }
+                """;
+
+        mockMvc.perform(post("/orders/{id}/pay", 88L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(payload))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(501))
+                .andExpect(jsonPath("$.orderId").value(88))
+                .andExpect(jsonPath("$.method").value("CREDIT_CARD"))
+                .andExpect(jsonPath("$.status").value("SUCCEEDED"))
+                .andExpect(jsonPath("$.amount").value(9.99))
+                .andExpect(jsonPath("$.transactionId").value("cc_tx_1"));
+    }
+
     private Order orderWithSingleItem(
             Long orderId,
             Long userId,
@@ -150,7 +189,7 @@ class OrderControllerTest {
         Order order = Order.builder()
                 .id(orderId)
                 .userId(userId)
-                .status(OrderStatus.CREATED)
+                .status(OrderStatus.PENDING)
                 .totalAmount(new BigDecimal(total))
                 .build();
         order.setItems(List.of(OrderItem.builder()
