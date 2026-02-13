@@ -17,10 +17,14 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
 public class OrderService {
+
+    private static final int PARALLEL_PROCESSING_THRESHOLD = 20;
 
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
@@ -107,18 +111,30 @@ public class OrderService {
     }
 
     private Map<Long, Integer> aggregateRequestedQuantities(List<CreateOrderItemRequest> items) {
-        Map<Long, Integer> requestedQtyByProductId = new HashMap<>();
-        for (CreateOrderItemRequest item : items) {
-            requestedQtyByProductId.merge(item.productId(), item.amount(), Integer::sum);
+        if (items.size() < PARALLEL_PROCESSING_THRESHOLD) {
+            Map<Long, Integer> requestedQtyByProductId = new HashMap<>();
+            for (CreateOrderItemRequest item : items) {
+                requestedQtyByProductId.merge(item.productId(), item.amount(), Integer::sum);
+            }
+            return requestedQtyByProductId;
         }
+        Map<Long, Integer> requestedQtyByProductId = new ConcurrentHashMap<>();
+        items.parallelStream()
+                .forEach(item -> requestedQtyByProductId.merge(item.productId(), item.amount(), Integer::sum));
         return requestedQtyByProductId;
     }
 
     private Map<Long, Integer> aggregateExistingQuantities(List<OrderItem> items) {
-        Map<Long, Integer> existingQtyByProductId = new HashMap<>();
-        for (OrderItem item : items) {
-            existingQtyByProductId.merge(item.getProductId(), item.getQuantity(), Integer::sum);
+        if (items.size() < PARALLEL_PROCESSING_THRESHOLD) {
+            Map<Long, Integer> existingQtyByProductId = new HashMap<>();
+            for (OrderItem item : items) {
+                existingQtyByProductId.merge(item.getProductId(), item.getQuantity(), Integer::sum);
+            }
+            return existingQtyByProductId;
         }
+        Map<Long, Integer> existingQtyByProductId = new ConcurrentHashMap<>();
+        items.parallelStream()
+                .forEach(item -> existingQtyByProductId.merge(item.getProductId(), item.getQuantity(), Integer::sum));
         return existingQtyByProductId;
     }
 
@@ -133,18 +149,32 @@ public class OrderService {
             List<CreateOrderItemRequest> items,
             Map<Long, Product> productsById
     ) {
-        BigDecimal total = BigDecimal.ZERO;
-        for (CreateOrderItemRequest itemRequest : items) {
-            Product product = productsById.get(itemRequest.productId());
-            BigDecimal unitPrice = product.getPrice();
-            OrderItem item = OrderItem.builder()
-                    .productId(itemRequest.productId())
-                    .quantity(itemRequest.amount())
-                    .price(unitPrice)
-                    .build();
-            order.addItem(item);
-            total = total.add(unitPrice.multiply(BigDecimal.valueOf(itemRequest.amount())));
+        Stream<CreateOrderItemRequest> itemStream = items.size() >= PARALLEL_PROCESSING_THRESHOLD
+                ? items.parallelStream()
+                : items.stream();
+
+        List<RebuiltOrderItem> rebuiltItems = itemStream
+                .map(itemRequest -> {
+                    Product product = productsById.get(itemRequest.productId());
+                    BigDecimal unitPrice = product.getPrice();
+                    OrderItem item = OrderItem.builder()
+                            .productId(itemRequest.productId())
+                            .quantity(itemRequest.amount())
+                            .price(unitPrice)
+                            .build();
+                    return new RebuiltOrderItem(item, unitPrice.multiply(BigDecimal.valueOf(itemRequest.amount())));
+                })
+                .sequential()
+                .toList();
+
+        BigDecimal total = rebuiltItems.stream()
+                .map(RebuiltOrderItem::lineTotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        for (RebuiltOrderItem rebuiltItem : rebuiltItems) {
+            order.addItem(rebuiltItem.item());
         }
+
         return total;
     }
 
@@ -200,5 +230,8 @@ public class OrderService {
             productsById.put(productId, product);
         }
         return productsById;
+    }
+
+    private record RebuiltOrderItem(OrderItem item, BigDecimal lineTotal) {
     }
 }

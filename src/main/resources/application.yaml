@@ -1,6 +1,9 @@
 spring:
   application:
     name: mini-ecom
+  threads:
+    virtual:
+      enabled: true
   datasource:
     url: jdbc:postgresql://localhost:5432/${POSTGRES_DB:mini_ecom}
     username: ${POSTGRES_USER:mini_ecom}
@@ -20,3 +23,10 @@ springdoc:
     path: /v3/api-docs
   swagger-ui:
     path: /swagger-ui.html
+    operations-sorter: alpha
+    tags-sorter: alpha
+    display-request-duration: true
+    filter: true
+    try-it-out-enabled: true
+    doc-expansion: none
+    default-models-expand-depth: -1

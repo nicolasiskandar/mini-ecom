@@ -1,7 +1,15 @@
 package org.example.miniecom.product.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.example.miniecom.common.ApiErrorResponse;
 import org.example.miniecom.product.dto.request.CreateProductRequest;
 import org.example.miniecom.product.dto.request.UpdateProductRequest;
 import org.example.miniecom.product.dto.response.ProductResponse;
@@ -22,33 +30,66 @@ import java.util.List;
 @RestController
 @RequestMapping("/products")
 @RequiredArgsConstructor
+@Tag(name = "Products")
 public class ProductController {
 
     private final ProductService productService;
 
     @PostMapping
+    @Operation(summary = "Create product")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Product created",
+                    content = @Content(schema = @Schema(implementation = ProductResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid input",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
     public ResponseEntity<ProductResponse> createProduct(@Valid @RequestBody CreateProductRequest request) {
         ProductResponse response = ProductResponse.from(productService.createProduct(request));
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/{id}")
-    public ProductResponse getProduct(@PathVariable Long id) {
+    @Operation(summary = "Get product by ID")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Product found",
+                    content = @Content(schema = @Schema(implementation = ProductResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Product not found",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
+    public ProductResponse getProduct(@Parameter(description = "Product ID", example = "1") @PathVariable Long id) {
         return ProductResponse.from(productService.getProduct(id));
     }
 
     @GetMapping
+    @Operation(summary = "List all products")
+    @ApiResponse(responseCode = "200", description = "Products fetched")
     public List<ProductResponse> getProducts() {
         return productService.getProducts().stream().map(ProductResponse::from).toList();
     }
 
     @PutMapping("/{id}")
-    public ProductResponse updateProduct(@PathVariable Long id, @Valid @RequestBody UpdateProductRequest request) {
+    @Operation(summary = "Update product")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Product updated",
+                    content = @Content(schema = @Schema(implementation = ProductResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid input",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Product not found",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
+    public ProductResponse updateProduct(@Parameter(description = "Product ID", example = "1") @PathVariable Long id,
+                                         @Valid @RequestBody UpdateProductRequest request) {
         return ProductResponse.from(productService.updateProduct(id, request));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
+    @Operation(summary = "Delete product")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Product deleted"),
+            @ApiResponse(responseCode = "404", description = "Product not found",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
+    public ResponseEntity<Void> deleteProduct(@Parameter(description = "Product ID", example = "1") @PathVariable Long id) {
         productService.deleteProduct(id);
         return ResponseEntity.noContent().build();
     }
