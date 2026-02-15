@@ -64,7 +64,7 @@ src/test
 ## Prerequisites
 
 - JDK 21+
-- Docker + Docker Compose (for local PostgreSQL)
+- Docker + Docker Compose
 - (Optional) Maven 3.9+ if you do not use the wrapper
 
 ## Configuration
@@ -76,6 +76,7 @@ Environment variables (or defaults):
 - `POSTGRES_DB` (default: `mini_ecom`)
 - `POSTGRES_USER` (default: `mini_ecom`)
 - `POSTGRES_PASSWORD` (default: `mini_ecom`)
+- `POSTGRES_HOST` (default: `localhost`)
 
 Example `.env`:
 
@@ -83,6 +84,7 @@ Example `.env`:
 POSTGRES_DB=mini_ecom
 POSTGRES_USER=mini_ecom
 POSTGRES_PASSWORD=mini_ecom
+POSTGRES_HOST=localhost
 ```
 
 ## Running Locally
@@ -90,7 +92,7 @@ POSTGRES_PASSWORD=mini_ecom
 1. Start PostgreSQL:
 
 ```bash
-docker compose up -d
+docker compose up -d postgres
 ```
 
 2. Run the API:
@@ -143,6 +145,44 @@ Cucumber reports are generated under:
 - `target/cucumber-reports/cucumber.html`
 - `target/cucumber-reports/cucumber.json`
 
+## Jenkins CI/CD (Docker)
+
+### Start Jenkins
+
+```bash
+docker compose up -d jenkins
+```
+
+Jenkins is available at `http://localhost:8081`.
+If Jenkins was already running before this setup, rebuild it so bundled plugins (including Pipeline) are installed:
+
+```bash
+docker compose up -d --build jenkins
+```
+
+### What the Pipeline Does
+
+`Jenkinsfile` defines a declarative pipeline:
+
+- `CI - Verify`: runs `./mvnw -B clean verify` (tests + JaCoCo threshold check)
+- `Build Docker Image`: builds `mini-ecom-app:<build_number>` and `mini-ecom-app:latest`
+- `CD - Deploy (main/master)`: deploys `postgres` + `app` using Docker Compose
+
+Deployment stage only runs when branch is `main` or `master`.
+
+### Jenkins Job Setup
+
+1. Create a Pipeline job in Jenkins.
+2. Point it to this repository.
+3. Set script path to `Jenkinsfile`.
+4. Run a build.
+
+### Manual Compose Deployment (same as CD stage)
+
+```bash
+APP_IMAGE=mini-ecom-app:latest docker compose --profile app up -d postgres app
+```
+
 ## Notes
 
 - Runtime uses virtual threads (`spring.threads.virtual.enabled=true`).
@@ -153,13 +193,19 @@ Cucumber reports are generated under:
 
 ```bash
 # start DB
-docker compose up -d
+docker compose up -d postgres
+
+# start Jenkins
+docker compose up -d jenkins
 
 # stop DB
-docker compose down
+docker compose stop postgres
 
 # run app
 ./mvnw spring-boot:run
+
+# deploy app container
+docker compose --profile app up -d postgres app
 
 # run all tests
 ./mvnw test

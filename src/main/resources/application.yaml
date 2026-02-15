@@ -5,7 +5,7 @@ spring:
     virtual:
       enabled: true
   datasource:
-    url: jdbc:postgresql://localhost:5432/${POSTGRES_DB:mini_ecom}
+    url: jdbc:postgresql://${POSTGRES_HOST:localhost}:5432/${POSTGRES_DB:mini_ecom}
     username: ${POSTGRES_USER:mini_ecom}
     password: ${POSTGRES_PASSWORD:mini_ecom}
   jpa:

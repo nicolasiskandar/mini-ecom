@@ -1,0 +1,8 @@
+target
+.git
+.gitignore
+.idea
+README.md
+HELP.md
+mini-ecom.iml
+jenkins_home
