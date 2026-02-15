@@ -5,3 +5,5 @@ github
 docker-workflow
 credentials-binding
 ssh-agent
+timestamper
+junit
