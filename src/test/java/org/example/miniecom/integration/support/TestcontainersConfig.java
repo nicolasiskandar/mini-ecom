@@ -21,7 +21,7 @@ public abstract class TestcontainersConfig {
         registry.add("spring.datasource.password", POSTGRES::getPassword);
         registry.add("spring.datasource.driver-class-name", POSTGRES::getDriverClassName);
         registry.add("spring.jpa.database-platform", () -> "org.hibernate.dialect.PostgreSQLDialect");
-        registry.add("spring.jpa.hibernate.ddl-auto", () -> "create-drop");
+        registry.add("spring.jpa.hibernate.ddl-auto", () -> "create");
         registry.add("spring.jpa.properties.hibernate.jdbc.lob.non_contextual_creation", () -> "true");
     }
 }

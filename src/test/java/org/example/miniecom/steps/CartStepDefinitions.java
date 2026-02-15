@@ -11,6 +11,7 @@ import org.example.miniecom.order.dto.request.CreateOrderItemRequest;
 import org.example.miniecom.order.dto.request.CreateOrderRequest;
 import org.example.miniecom.order.dto.request.UpdateOrderRequest;
 import org.example.miniecom.order.repository.OrderRepository;
+import org.example.miniecom.payment.repository.PaymentRepository;
 import org.example.miniecom.order.service.OrderService;
 import org.example.miniecom.product.domain.Product;
 import org.example.miniecom.product.dto.request.CreateProductRequest;
@@ -39,12 +40,16 @@ public class CartStepDefinitions {
     @Autowired
     private OrderRepository orderRepository;
 
+    @Autowired
+    private PaymentRepository paymentRepository;
+
     private final Map<String, Long> productIdsByName = new HashMap<>();
     private Order createdOrder;
     private RuntimeException lastException;
 
     @Before
     public void resetDatabase() {
+        paymentRepository.deleteAll();
         orderRepository.deleteAll();
         productRepository.deleteAll();
         productIdsByName.clear();

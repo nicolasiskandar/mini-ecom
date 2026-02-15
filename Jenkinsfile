@@ -22,8 +22,11 @@ pipeline {
                 sh "chmod +x mvnw"
                 withEnv([
                     "TESTCONTAINERS_RYUK_DISABLED=true",
-                    "TESTCONTAINERS_CHECKS_DISABLE=true"
+                    "TESTCONTAINERS_CHECKS_DISABLE=true",
+                    "TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal",
+                    "DOCKER_HOST=unix:///var/run/docker.sock"
                 ]) {
+                    sh "docker info >/dev/null"
                     sh "./mvnw -B clean verify"
                 }
             }

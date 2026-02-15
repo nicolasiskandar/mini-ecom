@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.example.miniecom.integration.support.TestcontainersConfig;
 import org.example.miniecom.order.domain.Order;
 import org.example.miniecom.order.repository.OrderRepository;
+import org.example.miniecom.payment.repository.PaymentRepository;
 import org.example.miniecom.product.domain.Product;
 import org.example.miniecom.product.repository.ProductRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,12 +44,16 @@ class OrderApiIntegrationTest extends TestcontainersConfig {
     @Autowired
     private ProductRepository productRepository;
 
+    @Autowired
+    private PaymentRepository paymentRepository;
+
     private Long headphonesProductId;
     private Long standProductId;
     private Long cableProductId;
 
     @BeforeEach
     void setUp() {
+        paymentRepository.deleteAll();
         orderRepository.deleteAll();
         productRepository.deleteAll();
 
