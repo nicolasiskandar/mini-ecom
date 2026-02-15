@@ -20,7 +20,12 @@ pipeline {
         stage("CI - Verify") {
             steps {
                 sh "chmod +x mvnw"
-                sh "./mvnw -B clean verify"
+                withEnv([
+                    "TESTCONTAINERS_RYUK_DISABLED=true",
+                    "TESTCONTAINERS_CHECKS_DISABLE=true"
+                ]) {
+                    sh "./mvnw -B clean verify"
+                }
             }
         }
 

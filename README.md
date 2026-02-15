@@ -170,6 +170,16 @@ docker compose up -d --build jenkins
 
 Deployment stage only runs when branch is `main` or `master`.
 
+### Testcontainers on Jenkins-in-Docker
+
+When Jenkins runs in Docker and uses the host Docker socket, Testcontainers' Ryuk sidecar may fail to connect in some environments.  
+The pipeline sets:
+
+- `TESTCONTAINERS_RYUK_DISABLED=true`
+- `TESTCONTAINERS_CHECKS_DISABLE=true`
+
+to make CI stable in this setup.
+
 ### Jenkins Job Setup
 
 1. Create a Pipeline job in Jenkins.
